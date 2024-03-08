@@ -7,12 +7,13 @@ import {
   StyledTodos,
   StyledTodoList,
 } from "./StyledHome.js";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import TodoBox from "@src/components/TodoBox.js";
 import { useDispatch, useSelector } from "react-redux";
 import { addTodos } from "../redux/modules/todosSlice.js";
 import { RootState } from "../redux/config/configStore.js";
+import axios from "axios";
 const Homepage = () => {
   const dispatch = useDispatch();
   const todos = useSelector((state: RootState) => state.todos.item);
@@ -38,6 +39,15 @@ const Homepage = () => {
       setText("");
     }
   };
+  const fetchTodos = async () => {
+    const { data } = await axios.get("http://localhost:4000/todos");
+    dispatch(data);
+  };
+
+  useEffect(() => {
+    fetchTodos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

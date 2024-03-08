@@ -1,0 +1,16 @@
+{
+  "todos": [
+    {
+      "id": 1,
+      "title": "할 일 1",
+      "text": "react",
+      "isCompleted": false
+    },
+    {
+      "id": 2,
+      "title": "할 일 2",
+      "text": "json-server",
+      "isCompleted": false
+    }
+  ]
+}
