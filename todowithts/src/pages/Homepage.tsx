@@ -7,16 +7,22 @@ import {
   StyledTodos,
   StyledTodoList,
 } from "./StyledHome.js";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { toast } from "react-toastify";
 import TodoBox from "@src/components/TodoBox.js";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { addTodos } from "../redux/modules/todosSlice.js";
-import { RootState } from "../redux/config/configStore.js";
 import axios from "axios";
+import { useQuery } from "react-query";
+import { Todo } from "../common/types.ts";
+const fetchTodos = async () => {
+  const { data } = await axios.get<Todo[]>("http://localhost:4000/todos");
+  return data;
+};
+
 const Homepage = () => {
+  const { data: todos, isLoading, error } = useQuery("todos", fetchTodos);
   const dispatch = useDispatch();
-  const todos = useSelector((state: RootState) => state.todos.item);
   const [title, setTitle] = useState<string>("");
   const [text, setText] = useState<string>("");
 
@@ -39,15 +45,10 @@ const Homepage = () => {
       setText("");
     }
   };
-  const fetchTodos = async () => {
-    const { data } = await axios.get("http://localhost:4000/todos");
-    dispatch(data);
-  };
 
-  useEffect(() => {
-    fetchTodos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  if (isLoading) return <div>Loading...</div>;
+  if (error)
+    return <div>문제가 발생했습니다. 데이터를 가져올 수 없습니다.</div>;
 
   return (
     <>
@@ -76,14 +77,16 @@ const Homepage = () => {
         </StyledInputArea>
       </StyledHeader>
       <StyledTodos>
-        working
-        <StyledTodoList>
-          <TodoBox todos={todos.filter((todo) => !todo.isCompleted)} />
+        <StyledTodoList title="working">
+          {todos ? (
+            <TodoBox todos={todos?.filter((todo) => !todo.isCompleted)} />
+          ) : null}
         </StyledTodoList>
-        done{" "}
-        <StyledTodoList>
+        <StyledTodoList title="done">
           {" "}
-          <TodoBox todos={todos.filter((todo) => todo.isCompleted)} />
+          {todos ? (
+            <TodoBox todos={todos?.filter((todo) => todo.isCompleted)} />
+          ) : null}
         </StyledTodoList>
       </StyledTodos>
     </>
