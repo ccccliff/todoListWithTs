@@ -4,3 +4,8 @@ export type Todo = {
   text: string;
   isCompleted: boolean;
 };
+
+export type initialStateType = {
+  item: Todo[];
+  isUpdating: boolean;
+};

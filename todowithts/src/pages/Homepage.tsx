@@ -7,23 +7,17 @@ import {
   StyledTodos,
   StyledTodoList,
 } from "./StyledHome.js";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { toast } from "react-toastify";
 import TodoBox from "@src/components/TodoBox.js";
-import { Todo } from "./../common/types.js";
+import { useDispatch, useSelector } from "react-redux";
+import { addTodos } from "../redux/modules/todosSlice.js";
+import { RootState } from "../redux/config/configStore.js";
 const Homepage = () => {
+  const dispatch = useDispatch();
+  const todos = useSelector((state: RootState) => state.todos.item);
   const [title, setTitle] = useState<string>("");
   const [text, setText] = useState<string>("");
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  useEffect(() => {
-    const loadedTodos = JSON.parse(localStorage.getItem("todos") || "[]");
-    setTodos(loadedTodos);
-  }, []);
-  useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
 
   const onTitleHandler = (e: ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -37,31 +31,14 @@ const Homepage = () => {
     if (!title.trim() || !text.trim()) {
       toast.error<string>("제목과 내용 모두 입력하세요");
     } else {
-      const newTodos = {
-        id: new Date().getTime(),
-        title: title,
-        text: text,
-        isCompleted: false,
-      };
-      setTodos([...todos, newTodos]);
+      dispatch(
+        addTodos({ id: new Date().getTime(), title, text, isCompleted: false })
+      );
       setTitle("");
       setText("");
-      localStorage.setItem("todos", "todos");
     }
   };
 
-  const DeleteHandler = (todoId: number) => {
-    const newTodos = todos.filter((todo) => todo.id !== todoId);
-    setTodos(newTodos);
-  };
-  const StateHandler = (todoId: number) => {
-    setIsUpdating(true);
-    const updatedTodos = todos.map((todo) =>
-      todo.id === todoId ? { ...todo, isCompleted: !todo.isCompleted } : todo
-    );
-    setTodos(updatedTodos);
-    setIsUpdating(false);
-  };
   return (
     <>
       <StyledHeader>
@@ -78,7 +55,7 @@ const Homepage = () => {
           내용:
           <StyledInput
             maxLength={30}
-            placeholder="내용을 입력하세요, 10자 미만"
+            placeholder="내용을 입력하세요, 30자 미만"
             primary={false}
             value={text}
             onChange={onTextHandler}
@@ -91,22 +68,12 @@ const Homepage = () => {
       <StyledTodos>
         working
         <StyledTodoList>
-          <TodoBox
-            todos={todos.filter((todo) => !todo.isCompleted)}
-            DeleteHandler={DeleteHandler}
-            StateHandler={StateHandler}
-            isUpdating={isUpdating}
-          />
+          <TodoBox todos={todos.filter((todo) => !todo.isCompleted)} />
         </StyledTodoList>
         done{" "}
         <StyledTodoList>
           {" "}
-          <TodoBox
-            todos={todos.filter((todo) => todo.isCompleted)}
-            DeleteHandler={DeleteHandler}
-            StateHandler={StateHandler}
-            isUpdating={isUpdating}
-          />
+          <TodoBox todos={todos.filter((todo) => todo.isCompleted)} />
         </StyledTodoList>
       </StyledTodos>
     </>

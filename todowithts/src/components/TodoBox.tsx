@@ -5,14 +5,23 @@ import {
   StyledButtons,
   StyledBtn,
 } from "./StyledTodoBox";
+import { RootState } from "../redux/config/configStore.js";
 import { Todo } from "./../common/types";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteTodos, stateTodos } from "../redux/modules/todosSlice";
 type Props = {
   todos: Todo[];
-  DeleteHandler: (todoKey: number) => void;
-  StateHandler: (index: number) => void;
-  isUpdating: boolean;
 };
-const TodoBox = ({ todos, DeleteHandler, StateHandler, isUpdating }: Props) => {
+const TodoBox = ({ todos }: Props) => {
+  const dispatch = useDispatch();
+  const isUpdating = useSelector((state: RootState) => state.todos.isUpdating);
+  const DeleteHandler = (todoId: number) => {
+    dispatch(deleteTodos(todoId));
+  };
+  const StateHandler = (todoId: number) => {
+    dispatch(stateTodos(todoId));
+  };
+
   return (
     <>
       {todos.map((todo) => (
