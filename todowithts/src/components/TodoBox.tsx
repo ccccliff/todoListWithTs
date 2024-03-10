@@ -5,36 +5,23 @@ import {
   StyledButtons,
   StyledBtn,
 } from "./StyledTodoBox";
-import { RootState } from "../redux/config/configStore.js";
 import { Todo } from "./../common/types";
-import { useDispatch, useSelector } from "react-redux";
-import { deleteTodos, stateTodos } from "../redux/modules/todosSlice";
 type Props = {
-  todos: Todo[];
+  data: Todo[];
+  DeleteHandler: (id: string) => void;
+  StateHandler: (id: string, isCompleted: boolean) => void;
 };
-const TodoBox = ({ todos }: Props) => {
-  const dispatch = useDispatch();
-  const isUpdating = useSelector((state: RootState) => state.todos.isUpdating);
-  const DeleteHandler = (todoId: number) => {
-    dispatch(deleteTodos(todoId));
-  };
-  const StateHandler = (todoId: number) => {
-    dispatch(stateTodos(todoId));
-  };
-
+const TodoBox = ({ data, DeleteHandler, StateHandler }: Props) => {
   return (
     <>
-      {todos.map((todo) => (
-        <StyledBox key={todo.id}>
-          <StyledBoxTitle>제목 : {todo.title}</StyledBoxTitle>
-          <StyledBoxText>내용 : {todo.text}</StyledBoxText>
+      {data.map((data) => (
+        <StyledBox key={data.id}>
+          <StyledBoxTitle>제목 : {data.title}</StyledBoxTitle>
+          <StyledBoxText>내용 : {data.text}</StyledBoxText>
           <StyledButtons>
-            <StyledBtn onClick={() => DeleteHandler(todo.id)}>삭제</StyledBtn>
-            <StyledBtn
-              disabled={isUpdating}
-              onClick={() => StateHandler(todo.id)}
-            >
-              {todo.isCompleted ? "취소" : "완료"}
+            <StyledBtn onClick={() => DeleteHandler(data.id)}>삭제</StyledBtn>
+            <StyledBtn onClick={() => StateHandler(data.id, data.isCompleted)}>
+              {data.isCompleted ? "취소" : "완료"}
             </StyledBtn>
           </StyledButtons>
         </StyledBox>

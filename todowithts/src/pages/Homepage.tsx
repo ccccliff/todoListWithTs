@@ -10,19 +10,16 @@ import {
 import { ChangeEvent, useState } from "react";
 import { toast } from "react-toastify";
 import TodoBox from "@src/components/TodoBox.js";
-import { useDispatch } from "react-redux";
-import { addTodos } from "../redux/modules/todosSlice.js";
-import axios from "axios";
-import { useQuery } from "react-query";
-import { Todo } from "../common/types.ts";
-const fetchTodos = async () => {
-  const { data } = await axios.get<Todo[]>("http://localhost:4000/todos");
-  return data;
-};
+import { Todo } from "./../common/types.js";
+import { getTodos, addTodo, deleteTodo, toggleTodo } from "@src/api/todos.js";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const Homepage = () => {
-  const { data: todos, isLoading, error } = useQuery("todos", fetchTodos);
-  const dispatch = useDispatch();
+  const { isPending, isError, data } = useQuery<Todo[]>({
+    queryKey: ["todos"],
+    queryFn: getTodos,
+  });
+  const queryClient = useQueryClient();
   const [title, setTitle] = useState<string>("");
   const [text, setText] = useState<string>("");
 
@@ -34,21 +31,59 @@ const Homepage = () => {
     setText(e.target.value);
   };
 
+  const addMutation = useMutation({
+    mutationFn: addTodo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["todos"],
+      });
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteTodo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["todos"],
+      });
+    },
+  });
+  const toggleMutation = useMutation({
+    mutationFn: toggleTodo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["todos"],
+      });
+    },
+  });
   const todoHandler = () => {
     if (!title.trim() || !text.trim()) {
       toast.error<string>("제목과 내용 모두 입력하세요");
     } else {
-      dispatch(
-        addTodos({ id: new Date().getTime(), title, text, isCompleted: false })
-      );
+      const newTodos = {
+        id: `${new Date().getTime()}`,
+        title: title,
+        text: text,
+        isCompleted: false,
+      };
+      addMutation.mutate(newTodos);
       setTitle("");
       setText("");
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error)
-    return <div>문제가 발생했습니다. 데이터를 가져올 수 없습니다.</div>;
+  const DeleteHandler = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+  const StateHandler = (id: string, isCompleted: boolean) => {
+    toggleMutation.mutate({ id, isCompleted });
+  };
+  if (isPending) {
+    return <p>로딩중입니다....!</p>;
+  }
+
+  if (isError) {
+    return <p>오류가 발생하였습니다...!</p>;
+  }
 
   return (
     <>
@@ -77,16 +112,22 @@ const Homepage = () => {
         </StyledInputArea>
       </StyledHeader>
       <StyledTodos>
-        <StyledTodoList title="working">
-          {todos ? (
-            <TodoBox todos={todos?.filter((todo) => !todo.isCompleted)} />
-          ) : null}
+        working
+        <StyledTodoList>
+          <TodoBox
+            data={data?.filter((data) => !data.isCompleted) ?? []}
+            DeleteHandler={DeleteHandler}
+            StateHandler={StateHandler}
+          />
         </StyledTodoList>
-        <StyledTodoList title="done">
+        done{" "}
+        <StyledTodoList>
           {" "}
-          {todos ? (
-            <TodoBox todos={todos?.filter((todo) => todo.isCompleted)} />
-          ) : null}
+          <TodoBox
+            data={data?.filter((data) => data.isCompleted) ?? []}
+            DeleteHandler={DeleteHandler}
+            StateHandler={StateHandler}
+          />
         </StyledTodoList>
       </StyledTodos>
     </>
